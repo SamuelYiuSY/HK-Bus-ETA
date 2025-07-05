@@ -2,17 +2,17 @@ import sqlite3
 import csv
 import os
 
-def init_stops(stations_csv, station_points_csv, db_path):
-    # Remove existing DB if exists
-    if os.path.exists(db_path):
-        os.remove(db_path)
-
+def init_tube_stops(stations_csv, station_points_csv, db_path):
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
+    # Drop existing tables if they exist
+    cur.execute("DROP TABLE IF EXISTS tube_stations")
+    cur.execute("DROP TABLE IF EXISTS tube_station_points")
+
     # Create stations table
     cur.execute("""
-        CREATE TABLE stations (
+        CREATE TABLE tube_stations (
             UniqueId TEXT PRIMARY KEY,
             Name TEXT,
             FareZones TEXT,
@@ -32,7 +32,7 @@ def init_stops(stations_csv, station_points_csv, db_path):
 
     # Create station_points table
     cur.execute("""
-        CREATE TABLE station_points (
+        CREATE TABLE tube_station_points (
             UniqueId TEXT PRIMARY KEY,
             StationUniqueId TEXT,
             AreaName TEXT,
@@ -58,7 +58,7 @@ def init_stops(stations_csv, station_points_csv, db_path):
             for row in reader
         ]
         cur.executemany("""
-            INSERT INTO stations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO tube_stations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, rows)
 
     # Insert station_points
@@ -72,19 +72,23 @@ def init_stops(stations_csv, station_points_csv, db_path):
             for row in reader
         ]
         cur.executemany("""
-            INSERT INTO station_points VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO tube_station_points VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, rows)
+
+    conn.commit()
+    conn.close()
         """, rows)
 
     conn.commit()
     conn.close()
 
-init_stops(
-    "tfl-stationdata-detailed/Stations.csv",
-    "tfl-stationdata-detailed/StationPoints.csv",
-    "stations.sqlite"
+init_tube_stops(
+    "tfl_downloaded_data/Stations.csv",
+    "tfl_downloaded_data/StationPoints.csv",
+    "db.sqlite"
 )
 
-def build_stop_list(db_path):
+def build_tube_stop_list_csv_from_db(db_path):
     """
     stopList = {
         "_stationID_": {
