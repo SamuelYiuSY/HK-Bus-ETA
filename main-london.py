@@ -30,7 +30,7 @@ def init_tube_stops(stations_csv, station_points_csv, db_path):
         )
     """)
 
-    # Create station_points table
+    # Create tube_station_points table
     cur.execute("""
         CREATE TABLE tube_station_points (
             UniqueId TEXT PRIMARY KEY,
@@ -45,7 +45,7 @@ def init_tube_stops(stations_csv, station_points_csv, db_path):
         )
     """)
 
-    # Insert stations
+    # Insert tube stations
     with open(stations_csv, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         rows = [
@@ -57,9 +57,7 @@ def init_tube_stops(stations_csv, station_points_csv, db_path):
             )
             for row in reader
         ]
-        cur.executemany("""
-            INSERT INTO tube_stations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, rows)
+        cur.executemany("INSERT INTO tube_stations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rows)
 
     # Insert station_points
     with open(station_points_csv, newline='', encoding='utf-8') as f:
