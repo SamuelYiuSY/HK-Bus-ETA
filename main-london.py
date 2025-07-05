@@ -195,6 +195,17 @@ def build_tube_stop_list_csv_from_db(db_path):
     conn.close()
     return stop_list
 
-# Example usage:
-print(build_stop_list("stations.sqlite"))
+def built_busRoute_from_db(db_path):
+    result_list = []
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT DISTINCT Route FROM bus_routes ORDER BY Route ASC")
+    rows = cur.fetchall()
 
+    result_list = [row[0] for row in rows]
+    conn.close()
+    return result_list
+                
+
+# Example usage:
+busRoute = built_busRoute_from_db("db.sqlite")
