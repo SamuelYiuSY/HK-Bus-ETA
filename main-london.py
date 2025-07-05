@@ -75,7 +75,71 @@ def init_tube_stops(stations_csv, station_points_csv, db_path):
 
     conn.commit()
     conn.close()
-        """, rows)
+
+def init_bus_routes(bus_stops_csv, bus_routes_csv, db_path):
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    # Drop bus_routes table if it exists
+    cur.execute("DROP TABLE IF EXISTS bus_stops")
+    cur.execute("DROP TABLE IF EXISTS bus_routes")
+
+    # Create bus_routes table
+    cur.execute("""
+        CREATE TABLE bus_stops (
+            Stop_Code_LBSL TEXT,
+            Bus_Stop_Code TEXT,
+            Naptan_Atco TEXT,
+            Stop_Name TEXT,
+            Location_Easting REAL,
+            Location_Northing REAL,
+            Heading REAL,
+            Stop_Area TEXT,
+            Virtual_Bus_Stop TEXT,
+            PRIMARY KEY (Stop_Code_LBSL, Bus_Stop_Code)
+        )
+    """)
+
+    # Insert bus routes
+    with open(bus_stops_csv, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        rows = [
+            (
+            row['Stop_Code_LBSL'], row['Bus_Stop_Code'], row['Naptan_Atco'], row['Stop_Name'],
+            row['Location_Easting'], row['Location_Northing'], row['Heading'],
+            row['Stop_Area'], row['Virtual_Bus_Stop']
+            )
+            for row in reader
+        ]
+
+        cur.executemany("INSERT INTO bus_stops (Stop_Code_LBSL, Bus_Stop_Code, Naptan_Atco, Stop_Name, Location_Easting, Location_Northing, Heading, Stop_Area, Virtual_Bus_Stop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", rows)
+
+    cur.execute("""
+        CREATE TABLE bus_routes (
+        Route TEXT,
+        Run TEXT,
+        Sequence INTEGER,
+        Stop_Code_LBSL TEXT,
+        Bus_Stop_Code TEXT,
+        Naptan_Atco TEXT,
+        Stop_Name TEXT,
+        Location_Easting REAL,
+        Location_Northing REAL,
+        Heading TEXT,
+        Virtual_Bus_Stop TEXT
+        )
+    """)
+
+    # Insert bus routes from bus_routes.csv
+    with open(bus_routes_csv, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        rows = [
+            (
+                row['Route'], row['Run'], int(row['Sequence']), row['Stop_Code_LBSL'], row['Bus_Stop_Code'], row['Naptan_Atco'], row['Stop_Name'], float(row['Location_Easting']), float(row['Location_Northing']), (row['Heading']), row['Virtual_Bus_Stop']
+            )
+            for row in reader
+        ]
+        cur.executemany("INSERT INTO bus_routes (Route, Run, Sequence, Stop_Code_LBSL, Bus_Stop_Code, Naptan_Atco, Stop_Name, Location_Easting, Location_Northing, Heading, Virtual_Bus_Stop) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rows)
 
     conn.commit()
     conn.close()
@@ -85,6 +149,11 @@ init_tube_stops(
     "tfl_downloaded_data/StationPoints.csv",
     "db.sqlite"
 )
+
+init_bus_routes(
+    "tfl_downloaded_data/bus-stops.csv",
+    "tfl_downloaded_data/bus-sequences.csv",
+    "db.sqlite")
 
 def build_tube_stop_list_csv_from_db(db_path):
     """
