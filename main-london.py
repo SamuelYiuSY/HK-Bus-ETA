@@ -69,9 +69,7 @@ def init_tube_stops(stations_csv, station_points_csv, db_path):
             )
             for row in reader
         ]
-        cur.executemany("""
-            INSERT INTO tube_station_points VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, rows)
+        cur.executemany("INSERT INTO tube_station_points VALUES (?, ?, ?, ?, ?, ?, ?, ?)", rows)
 
     conn.commit()
     conn.close()
