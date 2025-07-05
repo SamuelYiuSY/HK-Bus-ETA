@@ -2,7 +2,7 @@ import sqlite3
 import csv
 import os
 
-def init_stop(stations_csv, station_points_csv, db_path):
+def init_stops(stations_csv, station_points_csv, db_path):
     # Remove existing DB if exists
     if os.path.exists(db_path):
         os.remove(db_path)
@@ -78,7 +78,7 @@ def init_stop(stations_csv, station_points_csv, db_path):
     conn.commit()
     conn.close()
 
-init_stations(
+init_stops(
     "tfl-stationdata-detailed/Stations.csv",
     "tfl-stationdata-detailed/StationPoints.csv",
     "stations.sqlite"
